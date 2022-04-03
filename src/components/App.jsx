@@ -3,29 +3,35 @@ import { nanoid } from 'nanoid';
 import ContactForm from 'components/ContactForm';
 import ContactsList from 'components/ContactsList';
 import ContactFilter from 'components/ContactFilter';
+import data from '../contacts/contacts.json';
+import useLocalStorage from '../hook/useLocalStorage'
 
 
 export default function App() {
-  const [contacts, setContacts] = useState([
-    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-  ]);
+  const [contacts, setContacts] = useLocalStorage('contacts', data);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-      window.localStorage.setItem('contacts', JSON.stringify(contacts))}, [contacts])
+    localStorage.setItem('contacts', JSON.stringify(contacts))
+  }, [contacts]);
+
+  useEffect(() => {
+    const contacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(contacts);
+    if (parsedContacts) {
+      setContacts(parsedContacts);
+    };
+  }, [setContacts]);
 
   const deleteContact = contactId => {
     setContacts(contacts.filter(contact => contact.id !== contactId)
     )
   };
 
-  const addContact = contactData => {
-    const sameName = contacts.find(contact => contact.name.toLowerCase() === contactData.name.toLowerCase());
-    const sameNumber = contacts.find(contact => contact.number.toLowerCase() === contactData.number.toLowerCase());
-    const message = `${contactData.name} is alredy in contacts`;
+  const addContact = data => {
+    const sameName = contacts.find(contact => contact.name.toLowerCase() === data.name.toLowerCase());
+    const sameNumber = contacts.find(contact => contact.number.toLowerCase() === data.number.toLowerCase());
+    const message = `${data.name} is alredy in contacts`;
 
     if (sameName || sameNumber) {
       alert(message);
@@ -34,30 +40,22 @@ export default function App() {
 
     const newContact = {
       id: nanoid(),
-      name: contactData.name,
-      number: contactData.number
+      name: data.name,
+      number: data.number
     };
 
-    setContacts(( contacts ) => 
-      [newContact, ...contacts]
-    );
+    setContacts( prevState => [...prevState, newContact])
   };
 
   const changeFilter = e => {
     setFilter(e.currentTarget.value)
   };
 
-  
-
   const filterContacts = () => {
-    
     return contacts.filter(contact =>
     contact.name.toLowerCase().includes(filter.toLowerCase()));
   }
     
-  
-  
-
   return (
     <section>
       <h1>PhoneBook</h1>
